@@ -20,133 +20,98 @@ Never assume the user knows what a "fact table", "dimension", "measure", or "RLS
 
 Follow these steps in order. Never skip Step 0.
 
-### Step 0 — Understand Business Goals (always first)
+### Step 0 — Get a rough idea of the goal
 
-Before touching the database or asking for any technical information, ask the user what they want to see.
+Ask the user one open question:
 
-Start with:
-> "What do you want to see on your dashboard? Describe it like you would to a colleague — for example: 'I want to see total sales by month' or 'I want to know which products are most popular by region'."
+> "What do you want to see on your dashboard? Describe it like you'd explain to a colleague — for example: 'I want to see total sales by month' or 'I want to know which products are most popular by region'."
 
-Then ask follow-up questions to fill in the picture:
-
-- **What numbers or totals matter most?**
-  e.g. "total revenue", "number of orders", "average rating", "number of active users"
-
-- **How do you want to break those numbers down?**
-  e.g. "by country", "by product category", "by sales rep", "by device type"
-
-- **Do you need to see how things change over time?**
-  e.g. "sales per day", "signups by week", "monthly trends"
-
-- **Should different users see different data?**
-  e.g. "each regional manager sees only their region", or "everyone sees everything"
-
-- **Any calculated values?**
-  e.g. "profit margin = revenue minus costs", "conversion rate = orders / visits"
-
-As you gather answers, internally map them (do not show this to the user):
-- "Numbers/totals" → **measures**
-- "Broken down by / per / by" → **dimensions**
-- "Over time / by month / trends" → **time dimension**
-- "Only see their own / filtered by user" → **Row-Level Security**
-- "Calculated from other values" → **calculated members**
+**Do not ask follow-up questions yet.** A sentence or two is enough to proceed. Move to Step 1 immediately after.
 
 ---
 
-### Step 1 — Confirm understanding in plain language
+### Step 1 — Discover the database (run all 3 scripts automatically)
 
-Before running any scripts, reflect back what you understood and ask for confirmation:
+Don't ask the user anything technical. Run the scripts yourself.
+
+**1a. Get available connections:**
+```bash
+node src/embeddable.com/scripts/connection-list-env-file.cjs
+```
+Returns: `{"connections": ["sample_db", "snowflake", ...]}`
+
+If there's only one connection — use it automatically, no need to ask.
+If there are multiple — show the list and ask the user to pick one:
+> "I found a few database connections: sample_db, snowflake, trevor. Which one should I use?"
+
+**1b. Get available schemas:**
+```bash
+node src/embeddable.com/scripts/connection-schemas.cjs <connection_name>
+```
+Response schema: `src/embeddable.com/schemas/db_schemas.json`
+
+If there's only one schema — use it automatically.
+If there are multiple — pick the most likely one based on the user's goal, or ask if unclear.
+
+**1c. Get tables:**
+```bash
+echo '["schema_name"]' | node src/embeddable.com/scripts/connection-tables.cjs <connection_name> -
+```
+Response schema: `src/embeddable.com/schemas/db_tables.json`
+
+**1d. Get columns for all tables:**
+```bash
+cat tables.json | node src/embeddable.com/scripts/connection-columns.cjs <connection_name> -
+```
+Response schema: `src/embeddable.com/schemas/db_columns.json`
+
+Run 1b → 1c → 1d in sequence without asking the user anything between them.
+
+---
+
+### Step 2 — Ask targeted questions based on what you found
+
+Now that you have the real schema, ask only questions that you genuinely cannot answer from the column names and types alone. Ground every question in what you actually found:
+
+✅ Good — specific, grounded in real data:
+> "I can see a `queries` table with a `datasource_id` column and a `credits` table with a `query_id` column — looks like each query has a credit cost attached. Should I link these two tables so you can see credit usage per query?"
+
+> "I see a `user_id` column in the queries table. Should each user only see their own queries, or should the dashboard show data for everyone?"
+
+❌ Bad — abstract, could have been asked before looking at the schema:
+> "Are credits and queries in the same table or separate?"
+> "What are the types of credit deductions?"
+> "How many tables are involved?"
+
+**Only ask what you can't figure out yourself.** If a column name is obvious (`created_at`, `total_amount`, `status`), don't ask about it — just use it and mention it in the confirmation summary.
+
+---
+
+### Step 3 — Confirm the plan in plain language
+
+Before generating files, show a short summary and ask for confirmation:
 
 > "Here's what I'm planning to build:
-> 📊 **Metrics:** total revenue, number of orders
-> 🔍 **Breakdowns:** by country, by product category
-> 📅 **Time filter:** based on order date (daily / monthly)
-> 🔒 **Access:** all users see the same data
+> 📊 **Metrics:** number of queries, total credits spent
+> 🔍 **Breakdowns:** by datasource, by query type, by time period
+> 📅 **Time filter:** based on query run date
+> 🔒 **Access:** each user sees only their own data (filtered by user_id)
 >
-> Does this look right?"
+> Does this look right before I generate the files?"
 
 Only proceed once the user confirms.
 
 ---
 
-### Step 2 — Get connection name
+### Step 4 — Generate `.cube.yaml` files
 
-Run the following script to get the list of available connections:
-
-```bash
-node src/embeddable.com/scripts/connection-list-env-file.cjs
-```
-
-This returns a JSON object like: `{"connections": ["sample_db", "snowflake", ...]}`
-
-Show the list to the user in plain language and ask them to pick one:
-
-> "I found the following database connections:
-> 1. sample_db
-> 2. snowflake
-> 3. trevor
->
-> Which one contains the data you want to use?"
-
-Use the chosen connection name in all subsequent scripts.
-
----
-
-### Step 3 — Discover available schemas
-
-```bash
-node src/embeddable.com/scripts/connection-schemas.cjs <connection_name>
-```
-
-Response schema: `src/embeddable.com/schemas/db_schemas.json`
-
-Show the user the list of schemas in plain language and ask which ones contain the relevant data.
-
----
-
-### Step 4 — Discover available tables
-
-```bash
-echo '["schema_1", "schema_2"]' | node src/embeddable.com/scripts/connection-tables.cjs <connection_name> -
-```
-
-Response schema: `src/embeddable.com/schemas/db_tables.json`
-
-Show the table names and, based on the user's goals from Step 0, suggest which tables are likely relevant. Ask for confirmation.
-
----
-
-### Step 5 — Discover columns
-
-```bash
-cat tables.json | node src/embeddable.com/scripts/connection-columns.cjs <connection_name> -
-```
-
-Response schema: `src/embeddable.com/schemas/db_columns.json`
-
-Internally map column names and types to the goals identified in Step 0:
-- Numeric columns → likely measures
-- Text/categorical columns → likely dimensions
-- Timestamp/date columns → likely time dimensions
-- Foreign key columns (ending in `_id`) → likely joins, not exposed as dimensions
-
-Do not show this mapping to the user. Instead, confirm it in plain language:
-
-> "I found a column called `created_at` — I'll use that for the time filter. I also see `country` and `category` which I'll use for breakdowns. Does that sound right?"
-
----
-
-### Step 6 — Generate `.cube.yaml` files
-
-Generate one file per logical cube (usually one per table or domain). See model generation rules below.
-
-After generating, briefly explain what was created:
+Generate one file per logical cube. After generating, briefly explain what was created in plain language:
 
 > "I've created 2 files:
-> - `orders.cube.yaml` — tracks your orders with revenue and order count metrics
-> - `products.cube.yaml` — product catalog used for category breakdowns
+> - `queries.cube.yaml` — tracks queries with credit cost and run time
+> - `datasources.cube.yaml` — used to break down queries by datasource name
 >
-> These are now ready to connect to your embeddable.com dashboard."
+> These are ready to connect to your embeddable.com dashboard."
 
 ---
 
@@ -161,11 +126,11 @@ After generating, briefly explain what was created:
 - Use `snake_case` for all cube and member names
 - Do not expose raw technical columns (internal IDs, flags, system fields) unless asked
 - File names must follow the pattern: `{name}.cube.yaml` and be placed in the models directory
-- Always add `data_source: <connection_name>` to every cube if the user has more than one connection, or if the chosen connection is not named `default`. Use the connection name selected in Step 2.
+- Always add `data_source: <connection_name>` to every cube if the user has more than one connection, or if the chosen connection is not named `default`
 
 ### Join Rules (critical — violations cause compile errors)
 
-- **Always declare a primary key** on any cube that has a `joins` block. Use a dimension with `primary_key: true`:
+- **Always declare a primary key** on any cube that has a `joins` block:
   ```yaml
   dimensions:
     - name: id
@@ -173,30 +138,28 @@ After generating, briefly explain what was created:
       sql: id
       primary_key: true
   ```
-- **Never define a dimension in cube A using `{cube_b}.column` syntax.** A dimension that belongs to a joined cube must be defined inside that joined cube. Cube.js exposes it automatically when the join is used — no need to re-declare it in the parent cube.
+- **Never define a dimension in cube A using `{cube_b}.column` syntax.** Dimensions belong to their own cube — Cube.js exposes them automatically when the join is used.
 
 ### Security Context (Row-Level Security)
 
-Only apply if the user said different users should see different data. Use `COMPILE_CONTEXT.securityContext` injected at query time:
+Only apply if the user confirmed different users should see different data:
 
 ```yaml
 cubes:
-  - name: orders
+  - name: queries
     sql: >
       SELECT *
-      FROM public.orders
-      WHERE region = '{COMPILE_CONTEXT.securityContext.region}'
+      FROM public.queries
+      WHERE user_id = '{COMPILE_CONTEXT.securityContext.user_id}'
 ```
 
 ---
 
 ## Examples: From Business Goal to Cube Model
 
-Use these to guide your understanding of how user language maps to model structure.
-
 ### Example 1 — E-commerce sales dashboard
 
-**User says:** "I want to see total revenue and number of orders, broken down by country and product category, and how it changes month by month."
+**User says:** "I want to see total revenue and number of orders, broken down by country and product category, over time."
 
 **Maps to:**
 - measures: `total_revenue` (SUM of `amount`), `order_count` (COUNT)
@@ -233,44 +196,30 @@ cubes:
       - name: created_at
         sql: created_at
         type: time
-        description: 'The time when the order was created'
-        # optional - define additional custom time intervals (granularities)
-        granularities:
-          - name: quarter_hour
-            interval: 15 minutes
-
-          - name: week_starting_on_sunday
-            interval: 1 week
-            offset: -1 day
+        description: When the order was placed
 ```
-
----
 
 ### Example 2 — Music streaming (Spotify-like)
 
-**User says:** "I want to see most played songs, number of plays per day, and which countries listen the most."
+**User says:** "I want to see most played songs, plays per day, and which countries listen the most."
 
 **Maps to:**
 - measures: `total_plays` (COUNT), `unique_listeners` (COUNT DISTINCT of `user_id`)
 - dimensions: `song_name`, `artist_name`, `country`
 - time_dimension: `played_at`
 
----
-
 ### Example 3 — Support tickets
 
-**User says:** "I want to track how many tickets are open, how long they take to resolve, and which agents handle the most."
+**User says:** "I want to track open tickets, average resolution time, and which agents handle the most."
 
 **Maps to:**
 - measures: `open_ticket_count` (COUNT with status filter), `avg_resolution_hours` (AVG)
 - dimensions: `status`, `agent_name`, `priority`
 - time_dimension: `created_at`
 
----
-
 ### Example 4 — SaaS product analytics
 
-**User says:** "I need to see daily active users, new signups by week, and which acquisition channels bring the most users."
+**User says:** "I need daily active users, new signups by week, and which acquisition channels bring the most users."
 
 **Maps to:**
 - measures: `active_users` (COUNT DISTINCT of `user_id`), `new_signups` (COUNT)
@@ -282,9 +231,10 @@ cubes:
 ## Communication Rules
 
 - **Never use technical jargon** with the user: no "fact table", "dimension", "cardinality", "RLS", "YAML", "sql_table", "pre-aggregation"
+- **Look at the schema before asking questions** — most answers are already there
+- **Ground every question in real data** — reference actual table and column names you found
+- - **If something is ambiguous**, ask — never guess what a column or table means
 - **Always confirm before generating** — show a plain-language summary and wait for a "yes"
-- **Give examples** when asking questions — users find it easier to recognize than to invent
-- **If something is ambiguous**, ask — never guess what a column or table means
 - **After generating**, explain what was built in one short paragraph, not bullet points of YAML
 
 ---
