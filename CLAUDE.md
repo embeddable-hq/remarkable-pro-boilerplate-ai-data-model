@@ -161,6 +161,19 @@ After generating, briefly explain what was created:
 - Use `snake_case` for all cube and member names
 - Do not expose raw technical columns (internal IDs, flags, system fields) unless asked
 - File names must follow the pattern: `{name}.cube.yaml` and be placed in the models directory
+- Always add `data_source: <connection_name>` to every cube if the user has more than one connection, or if the chosen connection is not named `default`. Use the connection name selected in Step 2.
+
+### Join Rules (critical — violations cause compile errors)
+
+- **Always declare a primary key** on any cube that has a `joins` block. Use a dimension with `primary_key: true`:
+  ```yaml
+  dimensions:
+    - name: id
+      type: string
+      sql: id
+      primary_key: true
+  ```
+- **Never define a dimension in cube A using `{cube_b}.column` syntax.** A dimension that belongs to a joined cube must be defined inside that joined cube. Cube.js exposes it automatically when the join is used — no need to re-declare it in the parent cube.
 
 ### Security Context (Row-Level Security)
 
