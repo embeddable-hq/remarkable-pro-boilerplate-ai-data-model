@@ -1,0 +1,25 @@
+require('dotenv').config();
+
+const apiKey = process.env.API_KEY;
+const BASE_URL = process.env.BASE_URL;
+
+async function run() {
+  const resp = await fetch(`${BASE_URL}/api/v1/connections`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  console.log(`${resp.status} ${resp.statusText}`);
+
+  const text = await resp.text();
+  console.log(text);
+}
+
+run().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
