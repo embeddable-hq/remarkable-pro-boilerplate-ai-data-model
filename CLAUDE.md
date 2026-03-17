@@ -42,9 +42,13 @@ node src/embeddable.com/scripts/connection-get-db-type.cjs <connection>
 
 Ground every question in real table/column names. If a column is obvious (`created_at`, `status`, `amount`) — use it without asking.
 
-Only ask about ambiguous relationships or access control:
+Always ask about access control — this is mandatory, not optional:
+> "Should each user see only their own data, or should the dashboard show everyone's data to everyone?"
+
+Only skip this question if the user has already explicitly said that all users should see all data.
+
+Also ask about ambiguous relationships:
 > "I see `queries` has a `datasource_id` and there's a separate `credits` table with `query_id` — should I link these so you can see credit usage per query?"
-> "Should each user see only their own data, or everyone's?"
 
 ### Step 3 — Confirm in plain language
 
@@ -87,7 +91,7 @@ dimensions:
 
 Never define a dimension in cube A using `{cube_b}.column` syntax — dimensions belong to their own cube.
 
-### Row-Level Security (only if user confirmed per-user access)
+### Row-Level Security (default — always apply unless user explicitly says all users should see all data)
 
 ```yaml
 cubes:
