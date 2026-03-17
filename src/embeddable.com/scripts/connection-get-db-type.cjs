@@ -22,8 +22,8 @@ async function run() {
 
   console.log(`${resp.status} ${resp.statusText}`);
 
-  const text = await resp.text();
-  console.log(text);
+  const json = await resp.json();
+  console.log(json['type']);
 }
 
 run().catch((err) => {

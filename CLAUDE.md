@@ -35,6 +35,9 @@ cat tables.json | node src/embeddable.com/scripts/connection-columns.cjs <connec
 
 Response schemas: `src/embeddable.com/schemas/db_schemas.json`, `db_tables.json`, `db_columns.json`
 
+# 1e. DB type (only if SQL may not be portable across databases)
+node src/embeddable.com/scripts/connection-get-db-type.cjs <connection>
+
 ### Step 2 — Ask only what you can't infer from the schema
 
 Ground every question in real table/column names. If a column is obvious (`created_at`, `status`, `amount`) — use it without asking.
@@ -63,6 +66,7 @@ One `.cube.yaml` per logical cube. After generating, explain in one short paragr
 ## Model Generation Rules
 
 - Always include `sql_table` or `sql`
+- If the model requires complex SQL that may not be portable (window functions, date math, CTEs, etc.) — check the DB type first via `connection-get-db-type.cjs` and write dialect-appropriate SQL
 - Always add a `time` dimension if a date/timestamp column exists
 - Use `snake_case` for all names
 - Add `description` to cubes, measures, and dimensions
@@ -128,7 +132,8 @@ cubes:
 
 ---
 
-## Notes
+## Strict Constraints
 
-- Renaming cube members may break existing React components in `src/embeddable.com/` — check before renaming.
+- **Only use the scripts listed above.** Never invent script names, run raw SQL queries, or use direct DB clients (e.g. `pg`, `mysql2`).
+- If information cannot be obtained via the listed scripts — ask the user. For example: "I can see there's a `metadata` column but I can't read its structure directly. Could you paste an example of what's stored in it?"
 - Always confirm plan before generating files.
