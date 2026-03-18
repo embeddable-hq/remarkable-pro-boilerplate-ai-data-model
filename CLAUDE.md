@@ -126,16 +126,6 @@ For each cube cover:
 - **Calculated fields** — if any metric uses a formula, explain it in plain English (e.g. "Revenue is calculated by multiplying quantity by unit price")
 - **Access** — if RLS is applied, say who sees what in plain English; if not applied, say the dashboard shows all data to all users
 
-After narrating, run the validation script silently:
-
-```bash
-npm run validate:models
-```
-
-- If all checks pass — add a single line to the narration: "✅ Structural checks passed."
-- If any check fails — show the failures in plain language and fix the file before handing over. Do not ask the user whether to fix — just fix it.
-- Warnings (⚠️) do not block handover — note them briefly if relevant.
-
 End with:
 > "To make these models live, run: `npm run embeddable:push`"
 
