@@ -1,0 +1,53 @@
+# REFERENCE MODEL — replace with hand-written expert version
+# Placeholder created 2026-03-18. Used for ground truth comparison in plan-03 Task 3.6.
+
+cubes:
+  - name: tracks
+    sql_table: spotify.tracks
+    description: Music tracks — metadata including duration, album, and release date.
+    data_source: default
+
+    joins:
+      - name: artists
+        sql: "{CUBE}.artist_id = {artists}.artist_id"
+        relationship: many_to_one
+
+    measures:
+      - name: track_count
+        type: count
+        description: Number of tracks
+      - name: avg_duration_ms
+        type: avg
+        sql: duration_ms
+        description: Average track duration in milliseconds
+
+    dimensions:
+      - name: track_id
+        type: string
+        sql: track_id
+        primary_key: true
+
+      - name: track_name
+        type: string
+        sql: track_name
+        description: Track title
+
+      - name: album_name
+        type: string
+        sql: album_name
+        description: Album the track belongs to
+
+      - name: duration_ms
+        type: number
+        sql: duration_ms
+        description: Track duration in milliseconds
+
+      - name: release_date
+        type: time
+        sql: release_date
+        description: Track release date
+
+      - name: created_at
+        type: time
+        sql: created_at
+        description: Record creation timestamp

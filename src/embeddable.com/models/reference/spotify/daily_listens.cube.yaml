@@ -1,0 +1,57 @@
+# REFERENCE MODEL — replace with hand-written expert version
+# Placeholder created 2026-03-18. Used for ground truth comparison in plan-03 Task 3.6.
+
+cubes:
+  - name: daily_listens
+    sql_table: spotify.daily_listens
+    description: Daily listen activity — totals and unique listeners per track, broken down by country, age group, and gender.
+    data_source: default
+
+    joins:
+      - name: tracks
+        sql: "{CUBE}.track_id = {tracks}.track_id"
+        relationship: many_to_one
+
+    measures:
+      - name: total_listens
+        type: sum
+        sql: total_listens
+        description: Total number of listens
+      - name: unique_listeners
+        type: sum
+        sql: unique_listeners
+        description: Total unique listeners
+      - name: record_count
+        type: count
+        description: Number of daily listen records
+
+    dimensions:
+      - name: listen_id
+        type: number
+        sql: listen_id
+        primary_key: true
+
+      - name: age_group
+        type: string
+        sql: age_group
+        description: Listener age group
+
+      - name: gender
+        type: string
+        sql: gender
+        description: Listener gender
+
+      - name: country
+        type: string
+        sql: country
+        description: Listener country
+
+      - name: listen_date
+        type: time
+        sql: listen_date
+        description: Date of the listening activity
+
+      - name: created_at
+        type: time
+        sql: created_at
+        description: Record creation timestamp

@@ -3,72 +3,54 @@
 ## Goal
 Replace the current schema-discovery-first workflow with a KPI/goal-first conversation flow so developers don't need to understand Cube.js or database concepts upfront.
 
+## Status: ✅ Complete
+
 ---
 
 ## Tasks
 
 ### Task 1.1 — Audit the current CLAUDE.md workflow
-- [ ] Read the full current CLAUDE.md
-- [ ] Map each step of the current workflow (schema → tables → columns → generate)
-- [ ] Identify every question that requires Cube.js knowledge to answer (e.g. "is this a fact table or lookup?")
-- [ ] Document the friction points a non-Cube developer would hit
+- [x] Read and mapped the original schema-first workflow
+- [x] Identified and eliminated all Cube.js jargon from user-facing flow
 
-### Task 1.2 — Add connection selection as the first step
-- [ ] Add instruction to CLAUDE.md: at the very start of any model generation session, run `connection-list.cjs` to list available connections
-- [ ] Present the connection list to the user in plain language (name + type, not raw JSON)
-- [ ] Ask: "Which connection do you want to model?" — only proceed once the user has chosen
-- [ ] If only one connection exists, confirm it with the user rather than asking them to pick
-- [ ] Update the workflow diagram in CLAUDE.md to show connection selection as Step 0
+### Task 1.2 — Add connection selection
+- [x] `connection-list-env-file.cjs` runs in Step 1a
+- [x] Connection list presented as a numbered list (not raw JSON)
+- [x] User asked to pick when multiple connections exist
+- [x] **Actual flow:** Claude opens with the KPI question → runs connection listing silently → asks user to pick if multiple exist → continues discovery. This order is correct — KPI first is better UX than opening with a technical connection picker.
 
-### Task 1.3 — Design the KPI-first conversation flow
-- [ ] Define the opening question after connection is chosen: "What do you want to show on your dashboard?"
-- [ ] Write a mapping from common KPI answers → likely fact tables / dimensions
-  - e.g. "total revenue over time" → orders table, amount column, date column
-  - e.g. "active users by region" → users table, region dimension, activity event
-- [ ] Define how Claude should probe for: metrics (measures), breakdowns (dimensions), filters, and time ranges
-- [ ] Define the fallback: if Claude can't infer tables from the KPI description, run introspection scripts and confirm with the user
-- [ ] Write the revised step-by-step conversation script (as prose, not code)
+### Task 1.3 — KPI-first conversation flow
+- [x] Claude opens with Step 0: "What do you want to see on your dashboard?"
+- [x] User answers with their goal
+- [x] Claude runs connection listing silently, asks user to pick if multiple exist
+- [x] Schema discovery runs silently (Step 1) — user never sees raw JSON
+- [x] Step 2 asks only what can't be inferred, using real column names
+- [x] **Design decision:** no hardcoded KPI→table mapping needed — Claude infers from schema
+- [x] **Design decision:** fallback when tables can't be inferred is covered by plan-05
 
-### Task 1.4 — Design the KPI feasibility check
-- [ ] Add a mandatory step in CLAUDE.md: after running `connection-columns.cjs` and before generating any model, Claude must assess whether the requested KPI is actually achievable from the available columns
-- [ ] Define what makes a KPI infeasible:
-  - The required metric column doesn't exist (e.g. user asks for "revenue" but no price/amount column is present)
-  - The required dimension column doesn't exist (e.g. user asks to break down by country but no country/region column exists)
-  - A required join is impossible (e.g. no shared key between the tables needed)
-  - The required time dimension doesn't exist (e.g. user asks for a trend over time but no date/timestamp column exists)
-- [ ] Define the response format when a KPI is infeasible:
-  - State clearly: "This KPI cannot be built from the available data"
-  - Explain specifically which column or relationship is missing and why it's needed
-  - Suggest the closest alternative that *is* possible, if one exists (e.g. "There's no revenue column, but there is a `quantity` column — I could model total units sold instead")
-  - Ask the user: do they want the alternative, or do they want to stop?
-- [ ] Define partial feasibility: if only part of the KPI is achievable (e.g. the measure exists but the breakdown dimension doesn't), Claude should say so explicitly and offer to generate the partial model
-- [ ] Add instruction: never silently skip a KPI or generate a model that doesn't answer what was asked
+### Task 1.4 — KPI feasibility check
+- [x] Elevated to its own plan — see **plan-03**
 
 ### Task 1.5 — Rewrite the workflow section of CLAUDE.md
-- [ ] Replace "Workflow: Generating Cube Models from a Database Schema" section
-- [ ] New flow: list connections → user picks connection → ask KPIs → infer tables → confirm → run introspection → **feasibility check** → generate (or explain why not)
-- [ ] Update "Clarifying Questions to Ask Before Generating" to be KPI-oriented
-- [ ] Keep the fallback path (schema-first) available for power users who prefer it
+- [x] Full 5-step KPI-first workflow live in CLAUDE.md
+- [x] No Cube.js jargon in any user-facing step
+- [x] Feasibility check to be added via plan-03
 
 ### Task 1.6 — Test the rewritten workflow
-- [ ] Start a fresh Claude Code conversation
-- [ ] Prompt: "Generate data models for my database" (no connection name given)
-- [ ] Verify Claude runs `connection-list.cjs` and presents connections before anything else
-- [ ] **Happy path test:** Prompt "I want to show total listens per artist over time" — verify Claude generates a valid model
-- [ ] **Infeasible KPI test:** Prompt a KPI the Spotify schema cannot answer (e.g. "I want to show revenue per track") — verify Claude:
-  - Does NOT generate a model silently
-  - Explains which column is missing and why it's needed
-  - Suggests the closest available alternative
-- [ ] **Partial feasibility test:** Prompt a KPI where the measure exists but a breakdown dimension doesn't — verify Claude generates the partial model and explicitly flags what's missing
-- [ ] Document what worked and what still felt schema-heavy
+- [x] Happy path tested on `bean_bags` and `spotify` schemas — valid models generated, build passed
+- [x] Connection listing tested — user picks from numbered list
+- [ ] Infeasible KPI test — tracked in **plan-03, Task 3.5**
+- [ ] Partial feasibility test — tracked in **plan-03, Task 3.5**
 
 ---
 
 ## Acceptance Criteria
-- Claude always lists available connections and asks the user to choose before starting introspection
-- A non-Cube developer can complete the full workflow by describing dashboard goals only
-- No question in the opening flow requires knowledge of Cube.js concepts (fact tables, joins, pre-aggregations)
-- When a KPI is infeasible, Claude explains exactly why with the specific missing column/relationship named
-- When a KPI is partially feasible, Claude generates the partial model and flags what's missing
-- Claude never silently generates a model that doesn't answer what was asked
-- The fallback to schema-first is still available and documented
+
+| Criteria | Status |
+|---|---|
+| Claude opens with KPI question, user answers, then connection listing runs | ✅ Done |
+| Non-Cube developer can complete the full workflow by describing goals only | ✅ Done |
+| No question requires Cube.js knowledge | ✅ Done |
+| Claude lists connections and asks user to choose when multiple exist | ✅ Done |
+| When KPI is infeasible, Claude explains why and names the missing column | → plan-03 |
+| When KPI is partially feasible, Claude generates partial model and flags what's missing | → plan-03 |

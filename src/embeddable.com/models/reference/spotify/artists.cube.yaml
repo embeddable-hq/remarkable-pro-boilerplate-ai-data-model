@@ -1,0 +1,39 @@
+# REFERENCE MODEL — replace with hand-written expert version
+# Placeholder created 2026-03-18. Used for ground truth comparison in plan-03 Task 3.6.
+
+cubes:
+  - name: artists
+    sql_table: spotify.artists
+    description: Music artists — name, genre, country, and verification status.
+    data_source: default
+
+    measures:
+      - name: artist_count
+        type: count
+        description: Number of artists
+
+    dimensions:
+      - name: artist_id
+        type: string
+        sql: artist_id
+        primary_key: true
+
+      - name: artist_name
+        type: string
+        sql: artist_name
+        description: Artist name
+
+      - name: genre
+        type: string
+        sql: genre
+        description: Music genre
+
+      - name: country
+        type: string
+        sql: country
+        description: Artist's country of origin
+
+      - name: created_at
+        type: time
+        sql: created_at
+        description: Record creation timestamp

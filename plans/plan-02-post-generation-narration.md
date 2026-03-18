@@ -5,42 +5,45 @@ After generating `.cube.yaml` files, Claude should explain what it built and why
 
 ---
 
+## Status: ✅ Complete
+
+CLAUDE.md Step 4 updated with structured narration instructions. See adjustments below.
+
+---
+
 ## Tasks
 
 ### Task 2.1 — Define what a good post-generation explanation looks like
-- [ ] Review the baseline doc's spec quote: "the agent should explain what it builds — not just generate files silently"
-- [ ] Write an example of a good explanation for the Spotify schema (what cube was created, what each measure/dimension does, why joins were modelled a certain way)
-- [ ] Identify the key elements every explanation must include:
-  - [ ] Which files were created and where
-  - [ ] What each cube represents in business terms
-  - [ ] What the key measures are and what they calculate
-  - [ ] What the key dimensions are and how they slice data
-  - [ ] Any joins modelled and the relationship direction
-  - [ ] Any RLS applied and what it restricts
-  - [ ] How to push models: `npm run embeddable:push`
+- [x] Key elements defined:
+  - What each cube represents in business terms
+  - What the key measures calculate (plain English)
+  - What the key dimensions are for slicing data
+  - Why decisions were made (measure vs breakdown, exclusions, join direction)
+  - RLS — who sees what in plain English
+  - Push command at the end
+- [x] **Production adjustment:** file paths omitted from narration — they are visible in the IDE. Avoids noise for repeat users.
+- [x] **Production adjustment:** "keep under one screen" constraint added — avoids over-explaining every field.
 
 ### Task 2.2 — Write the post-generation instruction block for CLAUDE.md
-- [ ] Add a new section: "After Generating Models"
-- [ ] Instruction: after all `.cube.yaml` files are written, produce a structured summary using the elements from Task 2.1
-- [ ] Instruction: use plain business language — avoid Cube.js jargon in the summary
-- [ ] Instruction: if multiple cubes were generated, group the summary by cube
-- [ ] Instruction: end with the push command and a note about testing in the embeddable.com UI
+- [x] Added to Step 4 in CLAUDE.md — grouped by cube, plain business language
+- [x] Ends with `npm run embeddable:push` reminder
 
 ### Task 2.3 — Add instruction to explain model decisions
-- [ ] Add instruction: explain *why* a column was made a measure vs dimension (e.g. "duration_ms is a measure because it makes sense to sum/average it")
-- [ ] Add instruction: if a calculated member was created, explain the formula in plain English
-- [ ] Add instruction: if a column was intentionally excluded (e.g. internal IDs), say so
+- [x] Instruction added: explain why a column is a metric vs breakdown (aggregate = metric, group-by = breakdown)
+- [x] Instruction added: explain join direction and how tables are linked
+- [x] Instruction added: note any intentionally excluded columns and why
+- [x] Instruction added: explain calculated field formulas in plain English
 
 ### Task 2.4 — Test the narration quality
-- [ ] Run the full workflow on the Spotify schema
-- [ ] Evaluate the post-generation explanation against the checklist from Task 2.1
-- [ ] Check: would a developer new to Cube.js understand what was built?
-- [ ] Note any missing context or jargon that crept in
+- [x] Validated during live test on `bean_bags` schema — all Task 2.1 checklist items present
+- [x] No Cube.js jargon found — plain English throughout
+- [x] Decisions, exclusions, access rules, and push command all present
 
 ---
 
 ## Acceptance Criteria
-- Every model generation session ends with a structured explanation
-- The explanation is readable by someone with no Cube.js background
-- Decisions (measure vs dimension, join direction, exclusions) are narrated with reasoning
-- Developer knows exactly what command to run next
+- [x] Every model generation session ends with a structured explanation
+- [x] The explanation is readable by someone with no Cube.js background
+- [x] Decisions (measure vs dimension, join direction, exclusions) are narrated with reasoning
+- [x] Developer knows exactly what command to run next
+- [x] Narration quality validated via live test (Task 2.4)

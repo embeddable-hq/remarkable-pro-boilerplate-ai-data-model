@@ -31,6 +31,38 @@
 
 ---
 
+## 2026-03-17
+
+### Prompt / Context Changes
+- **CLAUDE.md — full rewrite.** Replaced the original schema-first multi-section doc with a lean 5-step workflow:
+  - Step 0: single open question — "What do you want to see on your dashboard?"
+  - Step 1: silent DB discovery (connections → schemas → tables → columns), with connection-list run first so user picks from real options
+  - Step 2: ask only what can't be inferred from the schema; access control question made mandatory
+  - Step 3: plain-language confirmation before generating
+  - Step 4: generate files + structured narration grouped by cube (decisions explained, push command at the end)
+  - Step 5: silent quality check via `embeddable:build`, scores written to `quality-scores.md`, broken models fixed before handover
+- **Effect:** Happy-path tests on `bean_bags` and `spotify` schemas produced valid models. KPI-oriented questions only — no Cube.js jargon surfaced to user. Build passed with zero errors on tested runs.
+- **`Your Role` section added** — explicitly bans Cube.js jargon (fact table, dimension, measure, RLS, YAML, sql_table, cardinality, pre-aggregation) from user-facing language.
+- **Plan 02 (narration) — marked Implemented.** All core tasks done: narration instructions live in CLAUDE.md Step 4. Only outstanding item is a live narration quality test (Task 2.4).
+
+### Measurement Improvements
+- Quality rubric defined (Plan 03, Task 3.1 ✅): syntax, KPI coverage, completeness, feasibility check, human review, join correctness, RLS, naming clarity, reference model similarity.
+- `embeddable:build` used as the syntax validator — confirmed passing on current models (Task 3.3 ✅ for build; push blocked on login).
+- Plan 03 expanded from 5 tasks to 10: added ground-truth reference model comparison (Task 3.6), live query execution (Task 3.7), RLS correctness verification (Task 3.8), messy schema testing (Task 3.9), regression test suite (Task 3.10).
+- Quality check now runs **automatically** in Step 5 of CLAUDE.md — no manual trigger needed.
+
+### What We Learned
+- The two-pass approach works: ask KPI first → run introspection silently → confirm plan → generate. Users don't need to understand schemas.
+- Connection listing must happen before KPI questions, but currently Step 1 (connections) runs after Step 0 (KPI question). Order is inverted from the plan spec — needs fixing.
+- When only one connection exists, Claude uses it silently without confirming. Plan says to confirm with the user — not yet implemented.
+- No explicit KPI → table inference heuristic in CLAUDE.md. Claude infers from context, which works on simple schemas but may break on ambiguous ones.
+- Feasibility check (Task 1.4) is not in CLAUDE.md yet — if a user asks for an impossible KPI, Claude may silently generate a partial or wrong model.
+
+### Biggest Challenge Today
+- **Feasibility check (Plan 03)** — defining when to tell the user "this can't be built" vs. "here's the closest thing I can build" requires Claude to reason about gaps between what's asked and what exists in the schema. The instruction needs to be precise enough that Claude doesn't over-refuse (blocking valid requests) or under-refuse (silently generating wrong models). Elevated from Plan 01 Task 1.4 to its own plan (plan-03) given the complexity.
+
+---
+
 ## Template for Next Entry
 
 ```
@@ -55,10 +87,12 @@
 
 | Plan | Title | Status |
 |------|-------|--------|
-| Plan 01 | KPI-First Workflow | 🔲 Not started |
-| Plan 02 | Post-Generation Narration | 🔲 Not started |
-| Plan 03 | Quality Measurement Baseline | 🔲 Not started |
-| Plan 04 | File Extension & Conventions | 🔲 Not started |
+| Plan 01 | KPI-First Workflow | ✅ Done |
+| Plan 02 | Post-Generation Narration | ✅ Done |
+| Plan 03 | KPI Feasibility Check | 🔲 Not started |
+| Plan 04 | Model Iteration and Editing | 🔲 Not started |
+| Plan 05 | Error Handling and Graceful Degradation | 🔲 Not started |
+| Plan 06 | Model Validation and Quality Scoring | 🔲 Not started |
 
 > Update status to: 🔲 Not started → 🟡 In progress → ✅ Done
 
@@ -70,4 +104,11 @@
 
 | Date | Plan | Task | Note |
 |------|------|------|------|
-| — | — | — | — |
+| 2026-03-17 | Plan 01 | Task 1.1 — Audit CLAUDE.md | Done informally as part of rewrite; no standalone doc written |
+| 2026-03-17 | Plan 01 | Task 1.2 — Connection selection | Implemented; gaps: silent when 1 connection, order is Step 1 not Step 0 |
+| 2026-03-17 | Plan 01 | Task 1.3 — KPI-first flow | Implemented in Steps 0–3; no explicit KPI→table map or fallback path yet |
+| 2026-03-17 | Plan 01 | Task 1.5 — Rewrite CLAUDE.md | Old schema-first workflow replaced with 5-step KPI-first flow |
+| 2026-03-17 | Plan 01 | Task 1.6 — Happy path test | Passed on `bean_bags` and `spotify` schemas; infeasible/partial tests not yet run |
+| 2026-03-17 | Plan 02 | Tasks 2.1–2.3 | Narration instructions added to CLAUDE.md Step 4; all core tasks done |
+| 2026-03-17 | Plan 03 | Task 3.1 — Rubric defined | All 8 scoring dimensions defined in CLAUDE.md Step 5 |
+| 2026-03-17 | Plan 03 | Task 3.3 — Syntax validation | `embeddable:build` passes with zero errors; push blocked on login |

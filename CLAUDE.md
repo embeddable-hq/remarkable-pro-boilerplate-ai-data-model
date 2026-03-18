@@ -61,9 +61,24 @@ Also ask about ambiguous relationships:
 
 Wait for confirmation before proceeding.
 
-### Step 4 — Generate files, then explain briefly
+### Step 4 — Generate files, then narrate
 
-One `.cube.yaml` per logical cube. After generating, explain in one short paragraph what was built — no YAML bullet lists.
+One `.cube.yaml` per logical cube. After generating, produce a structured explanation grouped by cube. Use plain business language — no Cube.js jargon.
+
+For each cube cover:
+- **What it represents** — one sentence in business terms
+- **What you can measure** — key metrics and what they calculate in plain English
+- **How you can slice it** — key breakdowns available
+- **Why decisions were made** — e.g. why a column becomes a metric vs a breakdown (columns you aggregate like totals/counts are metrics; columns you group by like names/categories/dates are breakdowns), how two tables are linked and in which direction
+- **Excluded columns** — if any columns were intentionally left out (e.g. internal IDs, system flags), briefly say so and why
+- **Calculated fields** — if any metric uses a formula, explain it in plain English (e.g. "Revenue is calculated by multiplying quantity by unit price")
+- **Access** — if RLS is applied, say who sees what in plain English; if not applied, say the dashboard shows all data to all users
+
+End with:
+> "To make these models live, run: `npm run embeddable:push`"
+
+Keep the whole explanation under one screen. Do not list every field — only the ones a business user would care about.
+
 
 ---
 
