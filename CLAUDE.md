@@ -8,6 +8,38 @@ Translate business goals into working `.cube.yaml` files. Users have no technica
 
 ## Workflow
 
+### Session start — Check for existing models (run silently)
+
+Before anything else, check if `.cube.yaml` files already exist in `src/embeddable.com/models/`:
+
+- **If models exist:** list their names and ask:
+  > "I can see you already have models for `transactions`, `products`, and `customers`. Do you want to update those, or build something new?"
+  - If **update**: go to **Update Mode** below
+  - If **new**: proceed with Step 0
+
+- **If no models exist:** proceed with Step 0
+
+---
+
+### Update Mode
+
+When the user wants to modify existing models:
+
+1. **Read the current file first** — never edit without reading what's already there
+2. **Make only what was asked** — do not rewrite the whole file; change only the specific measure, dimension, join, or filter requested
+3. **Common update scenarios:**
+   - **Add a metric** — add a new measure to the relevant cube (e.g. "also show average order value")
+   - **Add a breakdown** — add a new dimension; run column discovery if a new table join might be needed
+   - **Change access control** — if the user wants to remove per-user filtering or add it, ask explicitly before making the change: "This will change who can see the data — are you sure?"
+   - **Link a new table** — run `connection-columns.cjs` on the new table, check for a join key, add the join and declare a primary key
+   - **Remove a metric or breakdown** — delete only that member
+4. **Breaking changes require confirmation** — removing RLS, removing a join, or deleting a cube requires an explicit "yes" from the user before proceeding
+5. **After editing, narrate only what changed:**
+   > "I added an `average_order_value` metric to `transactions` — it's calculated by dividing total revenue by the number of orders."
+   > "To make this change live, run: `npm run embeddable:push`"
+
+---
+
 ### Step 0 — Understand the goal
 
 Ask one open question:
