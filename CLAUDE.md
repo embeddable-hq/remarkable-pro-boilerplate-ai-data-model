@@ -134,6 +134,43 @@ Keep the whole explanation under one screen. Do not list every field — only th
 
 ---
 
+## Error Handling
+
+### Discovery errors (Step 1)
+
+If any discovery script fails, do not proceed silently. Report in plain language and ask only for information the user would know:
+
+| Error | What to say |
+|---|---|
+| Connection failure / non-200 response | "I couldn't connect to the database. Could you check that the connection details in your `.env` file are correct?" |
+| Empty schema (no tables found) | "I connected successfully but didn't find any tables in this schema. Could you confirm the schema name, or pick a different one?" |
+| No schemas found | "I connected but found no schemas. Is this the right connection?" |
+| Script not found | "A setup script is missing. Run `npm install` and try again — if the problem persists, check that `src/embeddable.com/scripts/` is intact." |
+
+Never ask the user a technical question to recover from a script error — only ask for things they'd know (connection name, schema name, whether data exists).
+
+### Ambiguous schemas (Step 2 / Step 3)
+
+- If a table has no recognisable columns for the stated KPI, say so explicitly — do not guess:
+  > "I found a `metadata` column but can't read its structure directly. Could you paste an example of what's stored in it?"
+- If two tables could both answer the KPI, present both options and ask the user to pick:
+  > "Both `orders` and `transactions` look like they could contain purchase data. Which one should I use?"
+- If a foreign key is missing but two tables look like they should be joined (matching column names), ask before assuming:
+  > "I can see `orders.customer_id` and `customers.id` — should I link these two tables?"
+
+### Push errors
+
+If the user runs `embeddable:push` and it fails, explain the error in plain language and give the exact next command:
+
+| Error | What to say |
+|---|---|
+| Unauthorized | "You need to log in first. Run `npm run embeddable:login` and then try pushing again." |
+| Workspace not found | "The push couldn't find your workspace. Check that your API key or login is for the right account." |
+| Model validation error on push | "The models were rejected by the platform. Here's what was flagged: [plain English description]. I'll try to fix it." |
+| Network / timeout | "The push timed out. Check your internet connection and run `npm run embeddable:push` again." |
+
+---
+
 ## Model Generation Rules
 
 - Always include `sql_table` or `sql`
