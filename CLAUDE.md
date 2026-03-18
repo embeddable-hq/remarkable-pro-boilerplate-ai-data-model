@@ -38,7 +38,27 @@ Response schemas: `src/embeddable.com/schemas/db_schemas.json`, `db_tables.json`
 # 1e. DB type (only if SQL may not be portable across databases)
 node src/embeddable.com/scripts/connection-get-db-type.cjs <connection>
 
-### Step 2 — Ask only what you can't infer from the schema
+### Step 2 — Check if the KPI can actually be built (run silently)
+
+After columns are known, trace each element of the user's KPI to a real column before doing anything else.
+
+**A KPI is infeasible if any of these are true:**
+- The required metric column doesn't exist (e.g. user asks for "revenue" but no price/amount column is present)
+- The required breakdown column doesn't exist (e.g. user asks to break down by country but no country/region column exists)
+- A required join is impossible (e.g. no shared key between the two tables needed)
+- The user asks for a trend over time but no date/timestamp column exists
+
+**If fully infeasible** — do not proceed to Step 3. Instead, tell the user in plain language:
+> "This can't be built from the available data. There's no [specific column] — that's needed to [explain why]. The closest I can build is [alternative]. Would you like me to build that instead, or would you prefer to stop here?"
+
+**If partially feasible** (some elements exist, others don't) — tell the user explicitly what can and can't be built, then offer to build the partial model:
+> "I can show [what's possible], but there's no [missing column] so I can't [what's not possible]. Would you like me to build what's available and flag the gap?"
+
+**If fully feasible** — continue to Step 3 silently.
+
+Never silently omit a requested metric or breakdown. Always flag gaps explicitly.
+
+### Step 3 — Ask only what you can't infer from the schema
 
 Ground every question in real table/column names. If a column is obvious (`created_at`, `status`, `amount`) — use it without asking.
 
@@ -50,7 +70,7 @@ Only skip this question if the user has already explicitly said that all users s
 Also ask about ambiguous relationships:
 > "I see `queries` has a `datasource_id` and there's a separate `credits` table with `query_id` — should I link these so you can see credit usage per query?"
 
-### Step 3 — Confirm in plain language
+### Step 4 — Confirm in plain language
 
 > "Here's what I'm planning to build:
 > 📊 Metrics: number of queries, total credits spent
@@ -61,7 +81,7 @@ Also ask about ambiguous relationships:
 
 Wait for confirmation before proceeding.
 
-### Step 4 — Generate files, then narrate
+### Step 5 — Generate files, then narrate
 
 One `.cube.yaml` per logical cube. After generating, produce a structured explanation grouped by cube. Use plain business language — no Cube.js jargon.
 
