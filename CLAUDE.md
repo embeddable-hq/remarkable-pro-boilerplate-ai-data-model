@@ -10,7 +10,7 @@ Translate business goals into working `.cube.yaml` files. Users have no technica
 
 ### Session start — Check for existing models (run silently)
 
-Before anything else, check if `.cube.yaml` files already exist in `src/embeddable.com/models/`:
+Before anything else, check if `.cube.yaml` files already exist directly in `src/embeddable.com/models/` (top level only — do not look in subdirectories like `reference/`):
 
 - **If models exist:** list their names and ask:
   > "I can see you already have models for `transactions`, `products`, and `customers`. Do you want to update those, or build something new?"
@@ -125,6 +125,16 @@ For each cube cover:
 - **Excluded columns** — if any columns were intentionally left out (e.g. internal IDs, system flags), briefly say so and why
 - **Calculated fields** — if any metric uses a formula, explain it in plain English (e.g. "Revenue is calculated by multiplying quantity by unit price")
 - **Access** — if RLS is applied, say who sees what in plain English; if not applied, say the dashboard shows all data to all users
+
+After narrating, run the validation script silently:
+
+```bash
+npm run validate:models
+```
+
+- If all checks pass — add a single line to the narration: "✅ Structural checks passed."
+- If any check fails — show the failures in plain language and fix the file before handing over. Do not ask the user whether to fix — just fix it.
+- Warnings (⚠️) do not block handover — note them briefly if relevant.
 
 End with:
 > "To make these models live, run: `npm run embeddable:push`"

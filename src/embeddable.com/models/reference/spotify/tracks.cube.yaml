@@ -26,6 +26,7 @@ cubes:
         type: string
         sql: track_id
         primary_key: true
+        description: Unique track identifier
 
       - name: track_name
         type: string

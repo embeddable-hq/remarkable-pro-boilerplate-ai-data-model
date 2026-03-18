@@ -63,6 +63,28 @@
 
 ---
 
+## 2026-03-18
+
+### Prompt / Context Changes
+- **CLAUDE.md Step 5 updated** — validation script runs automatically after generation. Pass = single "✅ Structural checks passed" line. Fail = fix before handover, no user prompt needed.
+- **Error handling section retained** — no changes; push failure handling still in place from Plan 05.
+
+### Measurement Improvements
+- **validate-models.cjs built and tested** — objective, agent-independent quality gate. Catches: missing measures/dimensions/descriptions, join errors (no PK, no relationship, no sql), RLS gaps, non-snake_case names, technical suffixes. Exit code 1 on any failure.
+- **Tested on reference Spotify models** — 0 failures, 1 expected warning (`duration_ms` suffix). Fixed missing PK descriptions in all 3 reference placeholders.
+- **Intentional break test** — 6 violations injected, all 6 caught.
+
+### What We Learned
+- `js-yaml` is already installed as a transitive dependency — no additional install needed.
+- Primary key dimensions need descriptions too — the validator correctly flags them. Reference placeholders were missing these.
+- The `_ms` suffix warning fires on `duration_ms` — this is correct behaviour (flag for review), not a bug. Milliseconds are a legitimate unit but the naming convention warns anyway.
+- `generated-run-01/` directory no longer exists — Spotify test models were not committed. Only reference placeholders remain.
+
+### Biggest Challenge Today
+- All six plans complete. No outstanding blocking challenges. Next step when ready: provide hand-written reference models in `src/embeddable.com/models/reference/<schema>/` to enable ground truth semantic comparison (Plan 06, Task 6.5 — deferred pending user input).
+
+---
+
 ## Template for Next Entry
 
 ```
@@ -92,7 +114,7 @@
 | Plan 03 | KPI Feasibility Check | ✅ Done |
 | Plan 04 | Model Iteration and Editing | ✅ Done |
 | Plan 05 | Error Handling and Graceful Degradation | ✅ Done |
-| Plan 06 | Model Validation and Quality Scoring | 🔲 Not started |
+| Plan 06 | Model Validation and Quality Scoring | ✅ Done |
 
 > Update status to: 🔲 Not started → 🟡 In progress → ✅ Done
 
@@ -112,3 +134,7 @@
 | 2026-03-17 | Plan 02 | Tasks 2.1–2.3 | Narration instructions added to CLAUDE.md Step 4; all core tasks done |
 | 2026-03-17 | Plan 03 | Task 3.1 — Rubric defined | All 8 scoring dimensions defined in CLAUDE.md Step 5 |
 | 2026-03-17 | Plan 03 | Task 3.3 — Syntax validation | `embeddable:build` passes with zero errors; push blocked on login |
+| 2026-03-18 | Plan 06 | Task 6.1 — Define validation rules | All rules defined: completeness, joins, RLS, naming, data_source |
+| 2026-03-18 | Plan 06 | Task 6.2 — Build the script | `validate-models.cjs` built; added as `npm run validate:models` |
+| 2026-03-18 | Plan 06 | Task 6.3 — Integrate into CLAUDE.md | Step 5 updated: auto-runs after generation, fixes failures before handover |
+| 2026-03-18 | Plan 06 | Task 6.4 — Test the script | Passed: reference models, empty dir, intentional break (6/6 caught) |

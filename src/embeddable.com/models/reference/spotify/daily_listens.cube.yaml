@@ -30,6 +30,7 @@ cubes:
         type: number
         sql: listen_id
         primary_key: true
+        description: Unique listen record identifier
 
       - name: age_group
         type: string

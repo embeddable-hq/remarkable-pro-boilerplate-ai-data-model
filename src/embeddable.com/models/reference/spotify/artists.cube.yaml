@@ -17,6 +17,7 @@ cubes:
         type: string
         sql: artist_id
         primary_key: true
+        description: Unique artist identifier
 
       - name: artist_name
         type: string
