@@ -57,6 +57,11 @@ node src/embeddable.com/scripts/connection-list-env-file.cjs
 # 1b. Schemas
 node src/embeddable.com/scripts/connection-schemas.cjs <connection>
 # → if one: use it. If many: pick most relevant or ask.
+# → if more than 6 schemas are returned: do not guess. Present up to 5
+#   candidates based on naming (prefer schemas with "public", "report", "analytics",
+#   "output", "lookup" in the name) and ask the user:
+#   "I found N schemas. These look most relevant: [...]. Which ones should
+#   I use, and what does each one contain?"
 
 # 1c. Tables
 echo '["schema_name"]' | node src/embeddable.com/scripts/connection-tables.cjs <connection> -
@@ -230,7 +235,7 @@ cubes:
       - name: country
         type: string
         sql: country
-      - name: product_category
+      - name: product_category[locale_labels.cube.yml](../../Downloads/smartify/locale_labels.cube.yml)
         type: string
         sql: product_category
       - name: created_at
