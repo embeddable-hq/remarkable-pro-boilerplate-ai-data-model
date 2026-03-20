@@ -10,6 +10,10 @@ if (!connectionName) {
   process.exit(1);
 }
 
+function isServiceSchema(schemaName) {
+  return /^p[0-9a-f]{40,}$/i.test(schemaName) || schemaName.startsWith('pre_aggregations');
+}
+
 async function run() {
   const resp = await fetch(`${BASE_URL}/api/v1/connections/${connectionName}/schemas`, {
     method: 'POST',
@@ -21,8 +25,11 @@ async function run() {
 
   console.log(`${resp.status} ${resp.statusText}`);
 
-  const text = await resp.text();
-  console.log(text);
+  const schemas = await resp.json();
+
+  const filtered = schemas.filter(s => !isServiceSchema(s.schemaName));
+
+  console.log(JSON.stringify(filtered, null, 2));
 }
 
 run().catch((err) => {

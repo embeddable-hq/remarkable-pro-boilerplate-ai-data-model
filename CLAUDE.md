@@ -10,7 +10,7 @@ Translate business goals into working `.cube.yaml` files. Users have no technica
 
 ### Session start — Check for existing models (run silently)
 
-Before anything else, check if `.cube.yaml` files already exist directly in `src/embeddable.com/models/` (top level only — do not look in subdirectories like `reference/`):
+Before anything else, check if `.cube.yaml` or `.cube.yml` files already exist directly in `src/embeddable.com/models/` (top level only — do not look in subdirectories like `reference/`):
 
 - **If models exist:** list their names and ask:
   > "I can see you already have models for `transactions`, `products`, and `customers`. Do you want to update those, or build something new?"
